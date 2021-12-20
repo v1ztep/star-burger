@@ -143,3 +143,6 @@ dmypy.json
 cython_debug/
 
 .parcel-cache/
+package-lock.json
+products.json
+restaurants.json
