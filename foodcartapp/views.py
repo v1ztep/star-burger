@@ -2,6 +2,7 @@ import json
 
 from django.http import JsonResponse
 from django.templatetags.static import static
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
@@ -64,6 +65,31 @@ def product_list_api(request):
 
 @api_view(['POST'])
 def register_order(request):
+    expected_fields = {
+        'products': list,
+        'firstname': str,
+        'lastname': str,
+        'phonenumber': str,
+        'address': str
+    }
+    if not all([field in request.data.keys() for field in expected_fields.keys()]):
+        return Response(
+            'products, firstname, lastname, phonenumber, address: Обязательные поля.',
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    if not all([isinstance(request.data.get(field), type) for field, type in expected_fields.items()]):
+        return Response(
+            'products(list), firstname(str), lastname(str), phonenumber(str), '
+            'address(str): Поля не могут быть пустыми или содержать другой тип данных',
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    if any([not value for value in request.data.values()]):
+        return Response(
+            'products(list), firstname(str), lastname(str), phonenumber(str), '
+            'address(str): Поля не могут быть пустыми или содержать другой тип данных',
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
     order = request.data
 
     recorded_order = Order.objects.create(
