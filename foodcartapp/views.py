@@ -1,7 +1,13 @@
+import phonenumbers
 from django.http import JsonResponse
 from django.templatetags.static import static
+from phonenumbers import PhoneNumberFormat
+from phonenumbers import is_valid_number
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework.serializers import CharField
+from rest_framework.serializers import ListField
+from rest_framework.serializers import Serializer
 from rest_framework.serializers import ValidationError
 
 from .models import Order
@@ -63,16 +69,17 @@ def product_list_api(request):
 
 @api_view(['POST'])
 def register_order(request):
-    validate(request.data)
+    serializer = ApplicationSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
 
     recorded_order = Order.objects.create(
-        address=request.data['address'],
-        firstname=request.data['firstname'],
-        lastname=request.data['lastname'],
-        phonenumber=request.data['phonenumber']
+        address=serializer.validated_data['address'],
+        firstname=serializer.validated_data['firstname'],
+        lastname=serializer.validated_data['lastname'],
+        phonenumber=serializer.validated_data['phonenumber']
     )
 
-    for product in request.data['products']:
+    for product in serializer.validated_data['products']:
         OrderItem.objects.create(
             order=recorded_order,
             item=Product.objects.get(pk=product['product']),
@@ -81,31 +88,19 @@ def register_order(request):
     return Response({})
 
 
-def validate(data):
-    errors = []
-    expected_fields = {
-        'products': list,
-        'firstname': str,
-        'lastname': str,
-        'phonenumber': str,
-        'address': str
-    }
-    if not all(
-        [field in data.keys() for field in expected_fields.keys()]):
-        errors.append(
-            'products, firstname, lastname, phonenumber, address: Обязательные поля.'
-        )
-    if not all([isinstance(data.get(field), type) for field, type in
-                expected_fields.items()]):
-        errors.append(
-            'products(list), firstname(str), lastname(str), phonenumber(str), '
-            'address(str): Поля не могут быть пустыми или содержать другой тип данных'
-        )
-    if any([not value for value in data.values()]):
-        errors.append(
-            'products(list), firstname(str), lastname(str), phonenumber(str), '
-            'address(str): Поля не могут быть пустыми или содержать другой тип данных'
-        )
+class ApplicationSerializer(Serializer):
+    products = ListField()
+    firstname = CharField()
+    lastname = CharField()
+    phonenumber = CharField()
+    address = CharField()
 
-    if errors:
-        raise ValidationError(errors)
+    def validate_phonenumber(self, value):
+        parsed_phone = phonenumbers.parse(value, "RU")
+        if not is_valid_number(parsed_phone):
+            raise ValidationError('Wrong phonenumber')
+
+        standardized_phone = phonenumbers.format_number(
+            parsed_phone, PhoneNumberFormat.E164
+        )
+        return standardized_phone
