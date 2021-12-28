@@ -82,6 +82,7 @@ def register_order(request):
 
 
 def validate(data):
+    errors = []
     expected_fields = {
         'products': list,
         'firstname': str,
@@ -91,17 +92,20 @@ def validate(data):
     }
     if not all(
         [field in data.keys() for field in expected_fields.keys()]):
-        raise ValidationError([
+        errors.append(
             'products, firstname, lastname, phonenumber, address: Обязательные поля.'
-        ])
+        )
     if not all([isinstance(data.get(field), type) for field, type in
                 expected_fields.items()]):
-        raise ValidationError([
+        errors.append(
             'products(list), firstname(str), lastname(str), phonenumber(str), '
             'address(str): Поля не могут быть пустыми или содержать другой тип данных'
-        ])
+        )
     if any([not value for value in data.values()]):
-        raise ValidationError([
+        errors.append(
             'products(list), firstname(str), lastname(str), phonenumber(str), '
             'address(str): Поля не могут быть пустыми или содержать другой тип данных'
-        ])
+        )
+
+    if errors:
+        raise ValidationError(errors)
