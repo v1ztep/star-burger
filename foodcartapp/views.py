@@ -69,7 +69,7 @@ def product_list_api(request):
 
 @api_view(['POST'])
 def register_order(request):
-    serializer = ApplicationSerializer(data=request.data)
+    serializer = OrderSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
     recorded_order = Order.objects.create(
@@ -88,7 +88,7 @@ def register_order(request):
     return Response({})
 
 
-class ApplicationSerializer(Serializer):
+class OrderSerializer(Serializer):
     products = ListField()
     firstname = CharField()
     lastname = CharField()
