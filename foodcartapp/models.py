@@ -142,7 +142,8 @@ class Order(models.Model):
     )
     phonenumber = PhoneNumberField(
         'номер телефона',
-        db_index=True,
+        max_length=20,
+        db_index=True
     )
 
     class Meta:
@@ -159,7 +160,7 @@ class OrderItem(models.Model):
         related_name='items',
         on_delete=models.CASCADE
     )
-    item = models.ForeignKey(
+    product = models.ForeignKey(
         Product, verbose_name='товар',
         related_name='order_items',
         on_delete=models.CASCADE
@@ -174,7 +175,7 @@ class OrderItem(models.Model):
         verbose_name_plural = 'элементы заказа'
 
     def __str__(self):
-        return f'{self.item} ' \
+        return f'{self.product} ' \
                f'{self.order.firstname} ' \
                f'{self.order.lastname} ' \
                f'{self.order.address}'
