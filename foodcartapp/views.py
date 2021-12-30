@@ -7,6 +7,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.serializers import CharField
 from rest_framework.serializers import ListField
+from rest_framework.serializers import ModelSerializer
 from rest_framework.serializers import Serializer
 from rest_framework.serializers import ValidationError
 
@@ -78,28 +79,36 @@ def register_order(request):
         lastname=serializer.validated_data['lastname'],
         phonenumber=serializer.validated_data['phonenumber']
     )
+    products = serializer.validated_data['products']
 
-    for product in serializer.validated_data['products']:
+    for product in products:
         OrderItem.objects.create(
             order=recorded_order,
-            item=Product.objects.get(pk=product['product']),
+            product=product['product'],
             quantity=product['quantity']
         )
+
     return Response({})
 
 
-class OrderSerializer(Serializer):
-    products = ListField()
-    firstname = CharField()
-    lastname = CharField()
+class OrderItemSerializer(ModelSerializer):
+    class Meta:
+        model = OrderItem
+        fields = ['product', 'quantity']
+
+
+class OrderSerializer(ModelSerializer):
+    products = OrderItemSerializer(many=True, allow_empty=False)
     phonenumber = CharField()
-    address = CharField()
+
+    class Meta:
+        model = Order
+        fields = ['products', 'firstname', 'lastname', 'address', 'phonenumber']
 
     def validate_phonenumber(self, value):
-        parsed_phone = phonenumbers.parse(value, "RU")
+        parsed_phone = phonenumbers.parse(value, 'RU')
         if not is_valid_number(parsed_phone):
-            raise ValidationError('Wrong phonenumber')
-
+            raise ValidationError('Некорректный номер телефона')
         standardized_phone = phonenumbers.format_number(
             parsed_phone, PhoneNumberFormat.E164
         )
