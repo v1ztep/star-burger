@@ -6,9 +6,7 @@ from phonenumbers import is_valid_number
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.serializers import CharField
-from rest_framework.serializers import ListField
 from rest_framework.serializers import ModelSerializer
-from rest_framework.serializers import Serializer
 from rest_framework.serializers import ValidationError
 
 from .models import Order
@@ -88,7 +86,7 @@ def register_order(request):
             quantity=product['quantity']
         )
 
-    return Response({})
+    return Response(serializer.data)
 
 
 class OrderItemSerializer(ModelSerializer):
@@ -98,7 +96,7 @@ class OrderItemSerializer(ModelSerializer):
 
 
 class OrderSerializer(ModelSerializer):
-    products = OrderItemSerializer(many=True, allow_empty=False)
+    products = OrderItemSerializer(many=True, allow_empty=False, write_only=True)
     phonenumber = CharField()
 
     class Meta:
