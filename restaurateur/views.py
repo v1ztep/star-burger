@@ -3,12 +3,17 @@ from django.contrib.auth import authenticate
 from django.contrib.auth import login
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import user_passes_test
+from django.db.models import DecimalField
+from django.db.models import F
+from django.db.models import Prefetch
+from django.db.models import Sum
 from django.shortcuts import redirect
 from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views import View
 
 from foodcartapp.models import Order
+from foodcartapp.models import OrderItem
 from foodcartapp.models import Product
 from foodcartapp.models import Restaurant
 
@@ -100,5 +105,9 @@ def view_restaurants(request):
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
     return render(request, template_name='order_items.html', context={
-        'order_items': Order.objects.all(),
+        'order_items': Order.objects.prefetch_related('items__product')
+                  .annotate(total_cart=Sum(
+                        F('items__product__price') * F('items__quantity'),
+                        output_field=DecimalField())
+                  )
     })
