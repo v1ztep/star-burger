@@ -1,3 +1,6 @@
+import asyncio
+from decimal import Decimal
+
 from django.contrib import admin
 from django.shortcuts import reverse
 from django.templatetags.static import static
@@ -115,7 +118,7 @@ class OrderItemAdmin(admin.ModelAdmin):
 
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
-    list_display = ['item', 'quantity']
+    fields = ['product', 'quantity', 'total_price']
     extra = 0
 
 
@@ -125,3 +128,11 @@ class OrderAdmin(admin.ModelAdmin):
     inlines = [
         OrderItemInline
     ]
+
+    def save_formset(self, request, form, formset, change):
+        for f in formset.forms:
+            if f.changed_data:
+                obj = f.instance
+                obj.total_price = Decimal(obj.product.price * obj.quantity)
+                obj.save()
+        formset.save()
