@@ -144,6 +144,10 @@ class Order(models.Model):
         ('RAW', 'Необработанный'),
         ('FINISHED', 'Обработанный'),
     ]
+    PAYMENT_METHOD = [
+        ('Cash', 'Наличными'),
+        ('Card', 'По карте'),
+    ]
 
     address = models.CharField(
         'адрес',
@@ -171,6 +175,10 @@ class Order(models.Model):
     status = models.CharField(
         max_length=8, choices=STATUS, default='RAW',
         verbose_name='статус', db_index=True
+    )
+    payment_method = models.CharField(
+        max_length=4, choices=PAYMENT_METHOD,
+        default='Не заполнено', verbose_name='способ оплаты', db_index=True
     )
     registered_at = models.DateTimeField(
         default=timezone.now, verbose_name='время регистрации заказа',
