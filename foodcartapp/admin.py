@@ -1,10 +1,11 @@
-import asyncio
 from decimal import Decimal
 
 from django.contrib import admin
+from django.http import HttpResponseRedirect
 from django.shortcuts import reverse
 from django.templatetags.static import static
 from django.utils.html import format_html
+from django.utils.http import is_safe_url
 
 from .models import Order
 from .models import OrderItem
@@ -136,3 +137,13 @@ class OrderAdmin(admin.ModelAdmin):
                 obj.total_price = Decimal(obj.product.price * obj.quantity)
                 obj.save()
         formset.save()
+
+    def response_change(self, request, obj):
+        result = super().response_change(request, obj)
+        if "next" in request.GET:
+            redirect_to = request.GET["next"]
+            if not is_safe_url(url=redirect_to, allowed_hosts=request.get_host()):
+                redirect_to = reverse("view_orders")
+            return HttpResponseRedirect(redirect_to)
+        else:
+            return result
