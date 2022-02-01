@@ -139,6 +139,11 @@ class OrderQuerySet(models.QuerySet):
 
 
 class Order(models.Model):
+    STATUS = [
+        ('RAW', 'Необработанный'),
+        ('FINISHED', 'Обработанный'),
+    ]
+
     address = models.CharField(
         'адрес',
         max_length=100,
@@ -159,6 +164,9 @@ class Order(models.Model):
         max_length=20,
         db_index=True
     )
+    status = models.CharField(
+        max_length=8, choices=STATUS, default='RAW',
+        verbose_name='статус', db_index=True)
 
     objects = OrderQuerySet.as_manager()
 
