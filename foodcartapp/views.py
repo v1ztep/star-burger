@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from django.templatetags.static import static
 from phonenumbers import PhoneNumberFormat
 from phonenumbers import is_valid_number
+from phonenumbers.phonenumberutil import NumberParseException
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.serializers import CharField
@@ -107,7 +108,11 @@ class OrderSerializer(ModelSerializer):
         fields = ['products', 'firstname', 'lastname', 'address', 'phonenumber']
 
     def validate_phonenumber(self, value):
-        parsed_phone = phonenumbers.parse(value, 'RU')
+        try:
+            parsed_phone = phonenumbers.parse(value, 'RU')
+        except NumberParseException:
+            raise ValidationError('Некорректный номер телефона')
+
         if not is_valid_number(parsed_phone):
             raise ValidationError('Некорректный номер телефона')
         standardized_phone = phonenumbers.format_number(
