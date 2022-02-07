@@ -180,6 +180,14 @@ class Order(models.Model):
         max_length=4, choices=PAYMENT_METHOD,
         default='Не заполнено', verbose_name='способ оплаты', db_index=True
     )
+    restaurant = models.ForeignKey(
+        Restaurant,
+        related_name='orders',
+        verbose_name='ресторан',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
     registered_at = models.DateTimeField(
         default=timezone.now, verbose_name='время регистрации заказа',
         db_index=True
