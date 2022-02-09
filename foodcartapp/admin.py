@@ -126,6 +126,7 @@ class OrderItemInline(admin.TabularInline):
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     search_fields = ['firstname', 'lastname', 'address', 'phonenumber']
+    readonly_fields = ['registered_at']
     inlines = [
         OrderItemInline
     ]
