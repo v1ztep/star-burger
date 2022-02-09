@@ -123,6 +123,22 @@ def get_distance_to_user(end_point, user_position):
     ).km, 2)
 
 
+def get_available_restaurants(order_items, restaurants, order_coordinates):
+    available_restaurants = []
+    for restaurant in restaurants:
+        if order_items.issubset(restaurant['available_items']):
+            if order_coordinates:
+                restaurant['order_distance'] = get_distance_to_user(
+                    (
+                    restaurant['coordinates'][1], restaurant['coordinates'][0]),
+                    (order_coordinates[1], order_coordinates[0])
+                )
+            else:
+                restaurant['order_distance'] = 0
+            available_restaurants.append(restaurant)
+    return available_restaurants
+
+
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
     orders = Order.objects.prefetch_related('items__product').total_price()
@@ -132,16 +148,11 @@ def view_orders(request):
     orders_items = []
     for order in orders:
         order_items = {order_item.product.name for order_item in order.items.all()}
-        order_lon, order_lat = fetch_coordinates(settings.YANDEX_GEOCODER_API, order.address)
+        order_coordinates = fetch_coordinates(settings.YANDEX_GEOCODER_API, order.address)
 
-        available_restaurants = []
-        for restaurant in copy.deepcopy(serialized_restaurants):
-            if order_items.issubset(restaurant['available_items']):
-                restaurant['order_distance'] = get_distance_to_user(
-                        (restaurant['coordinates'][1], restaurant['coordinates'][0]),
-                        (order_lat, order_lon)
-                )
-                available_restaurants.append(restaurant)
+        available_restaurants = get_available_restaurants(
+            order_items, copy.deepcopy(serialized_restaurants), order_coordinates
+        )
 
         sorted_available_restaurants = sorted(
             available_restaurants, key=itemgetter('order_distance')
