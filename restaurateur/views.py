@@ -1,4 +1,8 @@
+import copy
+from operator import itemgetter
+
 from django import forms
+from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth import login
 from django.contrib.auth import views as auth_views
@@ -7,10 +11,12 @@ from django.shortcuts import redirect
 from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views import View
+from geopy import distance
 
 from foodcartapp.models import Order
 from foodcartapp.models import Product
 from foodcartapp.models import Restaurant
+from yandex_geocoder import fetch_coordinates
 
 
 class Login(forms.Form):
@@ -103,10 +109,18 @@ def serialize_restaurants(restaurants):
         serialized_restaurants.append(
             {
                 'name': restaurant.name,
-                'available_items': [menu_item.product.name for menu_item in restaurant.menu_items.all() if menu_item.availability]
+                'available_items': [menu_item.product.name for menu_item in restaurant.menu_items.all() if menu_item.availability],
+                'coordinates': fetch_coordinates(settings.YANDEX_GEOCODER_API, restaurant.address),
             }
         )
     return serialized_restaurants
+
+
+def get_distance_to_user(end_point, user_position):
+    return round(distance.distance(
+        user_position,
+        end_point
+    ).km, 2)
 
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
@@ -118,11 +132,20 @@ def view_orders(request):
     orders_items = []
     for order in orders:
         order_items = {order_item.product.name for order_item in order.items.all()}
+        order_lon, order_lat = fetch_coordinates(settings.YANDEX_GEOCODER_API, order.address)
 
-        available_restaurants =[]
-        for restaurant in serialized_restaurants:
+        available_restaurants = []
+        for restaurant in copy.deepcopy(serialized_restaurants):
             if order_items.issubset(restaurant['available_items']):
+                restaurant['order_distance'] = get_distance_to_user(
+                        (restaurant['coordinates'][1], restaurant['coordinates'][0]),
+                        (order_lat, order_lon)
+                )
                 available_restaurants.append(restaurant)
+
+        sorted_available_restaurants = sorted(
+            available_restaurants, key=itemgetter('order_distance')
+        )
 
         order_filling = {
             'id': order.id,
@@ -134,7 +157,7 @@ def view_orders(request):
             'phonenumber': order.phonenumber,
             'address': order.address,
             'comment': order.comment,
-            'restaurants': available_restaurants,
+            'restaurants': sorted_available_restaurants,
         }
 
         orders_items.append(order_filling)
