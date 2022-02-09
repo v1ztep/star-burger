@@ -178,14 +178,13 @@ class Order(models.Model):
     )
     payment_method = models.CharField(
         max_length=4, choices=PAYMENT_METHOD,
-        default='Не заполнено', verbose_name='способ оплаты', db_index=True
+        verbose_name='способ оплаты', db_index=True
     )
     restaurant = models.ForeignKey(
         Restaurant,
         related_name='orders',
         verbose_name='ресторан',
         null=True,
-        blank=True,
         on_delete=models.SET_NULL,
     )
     registered_at = models.DateTimeField(
