@@ -130,8 +130,7 @@ def get_available_restaurants(order_items, restaurants, order_coordinates):
         if order_items.issubset(restaurant['available_items']):
             if order_coordinates:
                 restaurant['order_distance'] = get_distance_to_user(
-                    (
-                    restaurant['coordinates'][1], restaurant['coordinates'][0]),
+                    (restaurant['coordinates'][1], restaurant['coordinates'][0]),
                     (order_coordinates[1], order_coordinates[0])
                 )
             else:
