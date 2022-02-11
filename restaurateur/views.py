@@ -13,6 +13,7 @@ from django.urls import reverse_lazy
 from django.views import View
 from geopy import distance
 
+from foodcartapp.models import DeliveryLocation
 from foodcartapp.models import Order
 from foodcartapp.models import Product
 from foodcartapp.models import Restaurant
@@ -144,11 +145,24 @@ def view_orders(request):
     orders = Order.objects.prefetch_related('items__product').total_price()
     restaurants = Restaurant.objects.prefetch_related('menu_items__product')
     serialized_restaurants = serialize_restaurants(restaurants)
+    delivery_locations = {
+        location.address: (location.lon, location.lat)
+        for location in DeliveryLocation.objects.all()
+    }
 
     orders_items = []
     for order in orders:
         order_items = {order_item.product.name for order_item in order.items.all()}
-        order_coordinates = fetch_coordinates(settings.YANDEX_GEOCODER_API, order.address)
+        order_coordinates = delivery_locations.get(order.address)
+
+        if not order_coordinates:
+            order_coordinates = fetch_coordinates(settings.YANDEX_GEOCODER_API, order.address)
+            if order_coordinates:
+                DeliveryLocation.objects.get_or_create(
+                    address=order.address,
+                    lon=order_coordinates[0],
+                    lat=order_coordinates[1]
+                )
 
         available_restaurants = get_available_restaurants(
             order_items, copy.deepcopy(serialized_restaurants), order_coordinates
