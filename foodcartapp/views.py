@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 import phonenumbers
 from django.db import transaction
 from django.http import JsonResponse
@@ -82,13 +84,15 @@ def register_order(request):
     )
     products = serializer.validated_data['products']
 
-    for product in products:
-        OrderItem.objects.create(
+    OrderItem.objects.bulk_create([
+        OrderItem(
             order=recorded_order,
             product=product['product'],
             quantity=product['quantity'],
-            total_price=product['product'].price * product['quantity'],
+            total_price=product['product'].price * product['quantity']
         )
+        for product in products
+    ])
 
     return Response(serializer.data)
 
