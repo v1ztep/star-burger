@@ -141,10 +141,9 @@ class OrderAdmin(admin.ModelAdmin):
 
     def response_change(self, request, obj):
         result = super().response_change(request, obj)
-        if "next" in request.GET:
-            redirect_to = request.GET["next"]
-            if not is_safe_url(url=redirect_to, allowed_hosts=request.get_host()):
-                redirect_to = reverse("view_orders")
-            return HttpResponseRedirect(redirect_to)
-        else:
+        if not "next" in request.GET:
             return result
+        redirect_to = request.GET["next"]
+        if not is_safe_url(url=redirect_to, allowed_hosts=request.get_host()):
+            redirect_to = reverse("view_orders")
+        return HttpResponseRedirect(redirect_to)
