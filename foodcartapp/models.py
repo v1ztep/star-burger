@@ -170,7 +170,7 @@ class Order(models.Model):
         db_index=True
     )
     comment = models.TextField(
-        verbose_name='комментарий', blank=True, db_index=True
+        verbose_name='комментарий', blank=True
     )
     status = models.CharField(
         max_length=8, choices=STATUS, default='RAW',
@@ -192,10 +192,12 @@ class Order(models.Model):
         db_index=True
     )
     called_at = models.DateTimeField(
-        verbose_name='время звонка клиенту', null=True, blank=True
+        verbose_name='время звонка клиенту',
+        null=True, blank=True, db_index=True
     )
     delivered_at = models.DateTimeField(
-        verbose_name='время доставки заказа', null=True, blank=True
+        verbose_name='время доставки заказа',
+        null=True, blank=True, db_index=True
     )
 
     objects = OrderQuerySet.as_manager()
