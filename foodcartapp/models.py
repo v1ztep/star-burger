@@ -227,7 +227,7 @@ class OrderItem(models.Model):
     )
     total_price = models.DecimalField(
         max_digits=8, decimal_places=2,
-        verbose_name='сумма одного товара', default=0,
+        verbose_name='сумма одного товара',
         validators=[MinValueValidator(0)]
     )
 
