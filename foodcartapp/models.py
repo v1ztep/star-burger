@@ -130,13 +130,13 @@ class RestaurantMenuItem(models.Model):
 
 class OrderQuerySet(models.QuerySet):
     def total_price(self):
-        total_price = self.annotate(
+        orders = self.annotate(
             total_price=Sum(
                 F('items__total_price'),
                 output_field=DecimalField()
             )
         )
-        return total_price
+        return orders
 
 
 class Order(models.Model):
