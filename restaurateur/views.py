@@ -17,7 +17,7 @@ from foodcartapp.models import DeliveryLocation
 from foodcartapp.models import Order
 from foodcartapp.models import Product
 from foodcartapp.models import Restaurant
-from yandex_geocoder import fetch_coordinates
+from location.yandex_geocoder import fetch_coordinates
 
 
 class Login(forms.Form):
