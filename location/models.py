@@ -8,8 +8,8 @@ class DeliveryLocation(models.Model):
         max_length=200,
         unique=True
     )
-    lon = models.FloatField('долгота')
-    lat = models.FloatField('широта')
+    lon = models.FloatField('долгота', blank=True)
+    lat = models.FloatField('широта', blank=True)
     registered_at = models.DateTimeField(
         default=timezone.now,
         verbose_name='дата запроса к геокодеру',
