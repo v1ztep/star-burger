@@ -7,7 +7,6 @@ from django.templatetags.static import static
 from django.utils.html import format_html
 from django.utils.http import is_safe_url
 
-from .models import DeliveryLocation
 from .models import Order
 from .models import OrderItem
 from .models import Product
@@ -149,8 +148,3 @@ class OrderAdmin(admin.ModelAdmin):
             return HttpResponseRedirect(redirect_to)
         else:
             return result
-
-
-@admin.register(DeliveryLocation)
-class DeliveryLocation(admin.ModelAdmin):
-    list_display = ['address', 'lon', 'lat']

@@ -13,10 +13,10 @@ from django.urls import reverse_lazy
 from django.views import View
 from geopy import distance
 
-from foodcartapp.models import DeliveryLocation
 from foodcartapp.models import Order
 from foodcartapp.models import Product
 from foodcartapp.models import Restaurant
+from location.models import DeliveryLocation
 from location.yandex_geocoder import fetch_coordinates
 
 

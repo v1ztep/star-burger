@@ -1,3 +1,8 @@
 from django.contrib import admin
 
-# Register your models here.
+from location.models import DeliveryLocation
+
+
+@admin.register(DeliveryLocation)
+class DeliveryLocation(admin.ModelAdmin):
+    list_display = ['address', 'lon', 'lat']
