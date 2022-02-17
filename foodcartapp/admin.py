@@ -132,10 +132,10 @@ class OrderAdmin(admin.ModelAdmin):
     ]
 
     def save_formset(self, request, form, formset, change):
-        for f in formset.forms:
-            if not f.changed_data:
+        for item_form in formset.forms:
+            if not item_form.changed_data:
                 continue
-            obj = f.instance
+            obj = item_form.instance
             obj.total_price = Decimal(obj.product.price * obj.quantity)
             obj.save()
         formset.save()
