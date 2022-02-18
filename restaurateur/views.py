@@ -141,16 +141,17 @@ def get_available_restaurants(order_items, restaurants, order_coordinates):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    orders = Order.objects.prefetch_related('items__product').total_price()
+    raw_orders = Order.objects.filter(status='RAW').prefetch_related('items__product').total_price()
     restaurants = Restaurant.objects.prefetch_related('menu_items__product')
     serialized_restaurants = serialize_restaurants(restaurants)
+    raw_orders_addresses = {order.address for order in raw_orders}
     delivery_locations = {
         location.address: (location.lon, location.lat)
-        for location in DeliveryLocation.objects.all()
+        for location in DeliveryLocation.objects.filter(address__in=raw_orders_addresses)
     }
 
     orders_items = []
-    for order in orders:
+    for order in raw_orders:
         order_items = {order_item.product.name for order_item in order.items.all()}
         order_coordinates = delivery_locations.get(order.address)
 
