@@ -124,10 +124,10 @@ def get_distance_to_user(end_point, user_position):
     ).km, 2)
 
 
-def get_available_restaurants(order_items, restaurants, order_coordinates):
+def get_available_restaurants(order_items_names, restaurants, order_coordinates):
     available_restaurants = []
     for restaurant in restaurants:
-        if order_items.issubset(restaurant['available_items']):
+        if order_items_names.issubset(restaurant['available_items']):
             if order_coordinates:
                 restaurant['order_distance'] = get_distance_to_user(
                     (restaurant['coordinates']['lat'], restaurant['coordinates']['lon']),
@@ -152,7 +152,7 @@ def view_orders(request):
 
     orders_items = []
     for order in raw_orders:
-        order_items = {order_item.product.name for order_item in order.items.all()}
+        order_items_names = {order_item.product.name for order_item in order.items.all()}
         order_coordinates = delivery_locations.get(order.address)
 
         if not order_coordinates:
@@ -165,7 +165,7 @@ def view_orders(request):
                 )
 
         available_restaurants = get_available_restaurants(
-            order_items, copy.deepcopy(serialized_restaurants), order_coordinates
+            order_items_names, copy.deepcopy(serialized_restaurants), order_coordinates
         )
 
         sorted_available_restaurants = sorted(
