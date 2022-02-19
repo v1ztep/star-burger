@@ -150,7 +150,7 @@ def view_orders(request):
         for location in DeliveryLocation.objects.filter(address__in=raw_orders_addresses)
     }
 
-    orders_items = []
+    orders_details = []
     for order in raw_orders:
         order_items_names = {order_item.product.name for order_item in order.items.all()}
         order_coordinates = delivery_locations.get(order.address)
@@ -172,7 +172,7 @@ def view_orders(request):
             available_restaurants, key=itemgetter('order_distance')
         )
 
-        order_filling = {
+        order_details = {
             'id': order.id,
             'status': order.get_status_display(),
             'payment_method': order.get_payment_method_display(),
@@ -184,9 +184,8 @@ def view_orders(request):
             'comment': order.comment,
             'restaurants': sorted_available_restaurants,
         }
-
-        orders_items.append(order_filling)
+        orders_details.append(order_details)
 
     return render(request, template_name='order_items.html', context={
-        'order_items': orders_items
+        'order_items': orders_details
     })
