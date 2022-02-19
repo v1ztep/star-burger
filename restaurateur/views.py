@@ -130,8 +130,8 @@ def get_available_restaurants(order_items, restaurants, order_coordinates):
         if order_items.issubset(restaurant['available_items']):
             if order_coordinates:
                 restaurant['order_distance'] = get_distance_to_user(
-                    (restaurant['coordinates'][1], restaurant['coordinates'][0]),
-                    (order_coordinates[1], order_coordinates[0])
+                    (restaurant['coordinates']['lat'], restaurant['coordinates']['lon']),
+                    (order_coordinates['lat'], order_coordinates['lon'])
                 )
             else:
                 restaurant['order_distance'] = 0
@@ -146,7 +146,7 @@ def view_orders(request):
     serialized_restaurants = serialize_restaurants(restaurants)
     raw_orders_addresses = {order.address for order in raw_orders}
     delivery_locations = {
-        location.address: (location.lon, location.lat)
+        location.address: {'lon':location.lon, 'lat':location.lat}
         for location in DeliveryLocation.objects.filter(address__in=raw_orders_addresses)
     }
 
@@ -160,8 +160,8 @@ def view_orders(request):
             if order_coordinates:
                 DeliveryLocation.objects.get_or_create(
                     address=order.address,
-                    lon=order_coordinates[0],
-                    lat=order_coordinates[1]
+                    lon=order_coordinates['lon'],
+                    lat=order_coordinates['lat']
                 )
 
         available_restaurants = get_available_restaurants(
