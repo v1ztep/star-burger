@@ -185,6 +185,7 @@ class Order(models.Model):
         related_name='orders',
         verbose_name='ресторан',
         null=True,
+        blank=True,
         on_delete=models.SET_NULL,
     )
     registered_at = models.DateTimeField(
