@@ -140,19 +140,25 @@ def get_distance_to_user(end_point, user_position):
     ).km, 2)
 
 
-def get_available_restaurants(order_items_names, restaurants, order_coordinates):
+def get_available_restaurants(order_items_names, restaurants):
     available_restaurants = []
     for restaurant in restaurants:
         if order_items_names.issubset(restaurant['available_items']):
-            if order_coordinates:
-                restaurant['order_distance'] = get_distance_to_user(
-                    (restaurant['coordinates']['lat'], restaurant['coordinates']['lon']),
-                    (order_coordinates['lat'], order_coordinates['lon'])
-                )
-            else:
-                restaurant['order_distance'] = 0
             available_restaurants.append(restaurant)
     return available_restaurants
+
+
+def add_distance_to_user(restaurants, order_coordinates):
+    for restaurant in restaurants:
+        if order_coordinates:
+            restaurant['order_distance'] = get_distance_to_user(
+                (restaurant['coordinates']['lat'],
+                 restaurant['coordinates']['lon']),
+                (order_coordinates['lat'], order_coordinates['lon'])
+            )
+        else:
+            restaurant['order_distance'] = 0
+    return restaurants
 
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
@@ -181,11 +187,14 @@ def view_orders(request):
                 )
 
         available_restaurants = get_available_restaurants(
-            order_items_names, copy.deepcopy(serialized_restaurants), order_coordinates
+            order_items_names, copy.deepcopy(serialized_restaurants)
+        )
+        available_restaurants_with_distance = add_distance_to_user(
+            available_restaurants, order_coordinates
         )
 
         sorted_available_restaurants = sorted(
-            available_restaurants, key=itemgetter('order_distance')
+            available_restaurants_with_distance, key=itemgetter('order_distance')
         )
 
         order_details = {
