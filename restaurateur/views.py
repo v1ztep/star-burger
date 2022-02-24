@@ -17,6 +17,7 @@ from foodcartapp.models import Order
 from foodcartapp.models import Product
 from foodcartapp.models import Restaurant
 from location.models import DeliveryLocation
+from location.models import RestaurantLocation
 from location.yandex_geocoder import fetch_coordinates
 
 
@@ -105,13 +106,28 @@ def view_restaurants(request):
 
 
 def serialize_restaurants(restaurants):
+    restaurant_locations = {
+        location.address: {'lon': location.lon, 'lat': location.lat}
+        for location in RestaurantLocation.objects.all()
+    }
+
     serialized_restaurants = []
     for restaurant in restaurants:
+        restaurant_coordinates = restaurant_locations.get(restaurant.address)
+        if not restaurant_coordinates:
+            restaurant_coordinates = fetch_coordinates(settings.YANDEX_GEOCODER_API, restaurant.address)
+            if restaurant_coordinates:
+                RestaurantLocation.objects.get_or_create(
+                    address=restaurant.address,
+                    lon=restaurant_coordinates['lon'],
+                    lat=restaurant_coordinates['lat']
+                )
+
         serialized_restaurants.append(
             {
                 'name': restaurant.name,
                 'available_items': [menu_item.product.name for menu_item in restaurant.menu_items.all() if menu_item.availability],
-                'coordinates': fetch_coordinates(settings.YANDEX_GEOCODER_API, restaurant.address),
+                'coordinates': restaurant_coordinates,
             }
         )
     return serialized_restaurants
